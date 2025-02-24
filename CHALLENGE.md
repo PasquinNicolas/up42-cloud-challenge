@@ -90,9 +90,11 @@ The values are not retrieved from Gitlab variables but from Teraform asking to c
 
 ## Future Improvements
 
-Use RBAC for access or Keycloack and Gitlab oidc.
-Have a jump server to manage the cluster and not use my local machine.
-Separate Infrastructure deployment in Terraform and Application which is the best practice in DEVOPS.
-Consider Testing the Helm Chart before deployment.
-Cenralise all secrets to one location. To simplify this: I could create a namespace different from my application , store all the secrets needed for
+- Use RBAC for access or Keycloack and Gitlab oidc.
+- Have a jump server to manage the cluster and not use my local machine.
+- Separate Infrastructure deployment in Terraform and Application which is the best practice in DEVOPS.
+- Consider Testing the Helm Chart before deployment.
+- Cenralise all secrets to one location. To simplify this: I could create a namespace different from my application , store all the secrets needed for
 my deployment in it.
+- Currently all the pvc are on longhorn and can be backedup tp and S3 Bucket.
+- Can use Velero to backup the volumes if another solution than Longhorn is used.

@@ -1,3 +1,6 @@
+> [!NOTE]  
+> A Complete documentation is provided in the doc folder
+
 # UP42 Cloud Engineering Challenge Documentation
 
 ## Overview
@@ -488,11 +491,9 @@ kubectl get secret --namespace file-server file-server-minio-secret -o jsonpath=
 
 ### Check s3www Access
 
-```bash
-kubectl port-forward -n file-server svc/file-server-s3www 8080:8080
-```
+Nginx Controller
 
-Access s3www at http://localhost:8080/document.gif
+Access s3www at http://http://s3www-up42.nip.io/
 
 ### Verify Prometheus Metrics
 
@@ -511,6 +512,8 @@ Access Prometheus at http://localhost:9090
 5. **Vault** - Secret management
 6. **External Secrets** - Connect Kubernetes with Vault
 7. **UP42 File Server** - Application deployment (via Helm or Terraform)
+8. **Metallb** - LoadBalanciing
+9. **Nginx Ingress Controller** - Ingress to access application Externally.
 
 The components integrate as follows:
 
