@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-s3www
+  labels:
+    app: s3www
+spec:
+  replicas: {{ .Values.s3www.replicaCount }}
+  selector:
+    matchLabels:
+      app: s3www
+  template:
+    metadata:
+      labels:
+        app: s3www
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        linkerd.io/inject: "enabled"
+        config.linkerd.io/proxy-enable-gateway: "false"
+        nginx.ingress.kubernetes.io/service-upstream: "true"
+        config.linkerd.io/proxy-cpu-request: "100m"
+        config.linkerd.io/proxy-cpu-limit: "300m"
+        config.linkerd.io/proxy-memory-request: "20Mi"
+        config.linkerd.io/proxy-memory-limit: "50Mi"
+    spec:
+      containers:
+        - name: s3www
+          image: "y4m4/s3www:latest"
+          args:
+            - -endpoint
+            - "http://{{ .Release.Name }}-minio:9000"
+            - -accessKey
+            - "$(MINIO_ACCESS_KEY)"
+            - -secretKey
+            - "$(MINIO_SECRET_KEY)"
+            - -bucket
+            - "{{ .Values.minio.bucket.name }}"
+            - -address
+            - "0.0.0.0:8080"
+          env:
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.accessKeyKey }}
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.secretKeyKey }}
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: {{ .Values.s3www.resources.requests.cpu | default "200m" | quote }}
+              memory: {{ .Values.s3www.resources.requests.memory | default "64Mi" | quote }}
+            limits:
+              cpu: {{ .Values.s3www.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.s3www.resources.limits.memory | default "128Mi" | quote }}

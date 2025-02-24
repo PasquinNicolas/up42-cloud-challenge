@@ -1,0 +1,26 @@
+# charts/up42-file-server/templates/servicemonitor.yaml
+{{- if and .Values.s3www.metrics.enabled .Values.s3www.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-s3www-linkerd
+  {{- if .Values.s3www.metrics.serviceMonitor.namespace }}
+  namespace: {{ .Values.s3www.metrics.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    app: s3www
+    {{- with .Values.s3www.metrics.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - targetPort: linkerd-metrics
+      path: /metrics
+      interval: {{ .Values.s3www.metrics.serviceMonitor.interval }}
+  selector:
+    matchLabels:
+      app: s3www
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

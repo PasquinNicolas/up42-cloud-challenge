@@ -1,0 +1,14 @@
+# templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-init
+data:
+  init.sh: |
+    #!/bin/sh
+    set -e
+    mc config host add myminio http://{{ .Release.Name }}-minio:9000 ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY}
+    mc mb --ignore-existing myminio/{{ .Values.minio.bucket.name }}
+    # Copy the document.gif to the bucket
+    mc cp /files/document.gif myminio/{{ .Values.minio.bucket.name }}/
+    mc policy set download myminio/{{ .Values.minio.bucket.name }}

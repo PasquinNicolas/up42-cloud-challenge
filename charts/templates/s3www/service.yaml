@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-s3www
+  labels:
+    app: s3www
+  annotations:
+    linkerd.io/inject: enabled 
+spec:
+  type: {{ .Values.s3www.service.type }}
+  ports:
+    - port: {{ .Values.s3www.service.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: s3www

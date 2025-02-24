@@ -1,0 +1,22 @@
+{{- if .Values.s3www.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Release.Name }}-s3www
+  labels:
+    app: s3www
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Release.Name }}-s3www
+  minReplicas: {{ .Values.s3www.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.s3www.autoscaling.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.s3www.autoscaling.targetCPUUtilizationPercentage }}
+{{- end }}

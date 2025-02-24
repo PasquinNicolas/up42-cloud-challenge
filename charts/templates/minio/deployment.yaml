@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-minio
+  labels:
+    app: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+      annotations:
+        linkerd.io/inject: "enabled"
+        config.linkerd.io/proxy-enable-gateway: "false"
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:RELEASE.2024-12-18T13-15-44Z-cpuv1
+          args:
+            - server
+            - /data
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.accessKeyKey }}
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.secretKeyKey }}
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"        
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9001
+              name: console
+          volumeMounts:
+            - name: data
+              mountPath: "/data"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-minio-pvc

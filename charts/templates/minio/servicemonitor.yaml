@@ -1,0 +1,27 @@
+
+# templates/minio/servicemonitor.yaml
+{{- if and .Values.minio.metrics.enabled .Values.minio.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-minio
+  {{- if .Values.minio.metrics.serviceMonitor.namespace }}
+  namespace: {{ .Values.minio.metrics.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    app: minio
+    {{- with .Values.minio.metrics.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+    - port: api
+      path: /minio/v2/metrics/cluster
+      interval: {{ .Values.minio.metrics.serviceMonitor.interval }}
+  selector:
+    matchLabels:
+      app: minio
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

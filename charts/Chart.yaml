@@ -1,0 +1,5 @@
+apiVersion: v2
+name: up42-file-server
+description: A Helm chart for deploying MinIO and s3www services for UP42
+version: 0.1.0
+type: application

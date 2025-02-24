@@ -1,0 +1,64 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-minio-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      initContainers:
+        - name: wait-for-minio
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting 50 seconds for MinIO to be ready..."
+              sleep 50
+              echo "Proceeding with initialization..."
+      containers:
+        - name: mc
+          image:  registry.gitlab.com/npasquin/techw-cicd/minio-init:0.0.1
+          command:
+            - sh
+            - -c
+            - |
+              echo "Starting MinIO initialization..."
+              
+              echo "Configuring MinIO client..."
+              mc config host add myminio http://{{ .Release.Name }}-minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} --quiet
+              
+              echo "Creating bucket..."
+              mc mb --ignore-existing myminio/{{ .Values.minio.bucket.name }} || echo "Bucket might already exist"
+              
+              echo "Copying document.gif to bucket..."
+              mc cp /files/document.gif myminio/{{ .Values.minio.bucket.name }}/
+              
+              echo "Setting bucket policy..."
+              mc policy set download myminio/{{ .Values.minio.bucket.name }}
+              
+              echo "Verifying setup..."
+              mc ls myminio/{{ .Values.minio.bucket.name }}/document.gif
+              
+              echo "Initialization completed successfully"
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.accessKeyKey }}
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.minio.credentials.existingSecret }}
+                  key: {{ .Values.minio.credentials.secretKeyKey }}
+      volumes:
+        - name: document
+          configMap:
+            name: {{ .Release.Name }}-files
+      restartPolicy: OnFailure
