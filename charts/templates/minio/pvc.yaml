@@ -9,4 +9,4 @@ spec:
   resources:
     requests:
       storage: {{ .Values.minio.persistence.size }}
-  storageClassName: longhorn
+  storageClassName: standard
